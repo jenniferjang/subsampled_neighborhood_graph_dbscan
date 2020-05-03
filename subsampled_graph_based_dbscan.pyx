@@ -113,19 +113,12 @@ class SubsampledGraphBasedDBSCAN:
         X = np.ascontiguousarray(X)
         n, d = X.shape
 
-        # Find the core points
-        # X_tree = KDTree(X)
-        # neighbors, radii = X_tree.query_radius(X, r=self.eps, return_distance=True, sort_results=True)
-        # X_core_ind = []
-        # for i in range(len(neighbors)):
-        #   neighbors[i] = sample(neighbors[i], int(len(neighbors[i]) * self.p))
-        #   if len(neighbors[i]) >= self.minPts * self.p:
-        #     X_core_ind.append(i)
-
+        # Find core points
         is_core_pt = np.where(num_neighbors >= self.minPts, 1, 0)
         core_pts = np.arange(n)[is_core_pt]
         c = core_pts.shape[0]
 
+        # Get the core neighbors for each core point
         core_neighbors = np.full(neighbors.shape[0], -1, dtype=np.int32)
         num_core_neighbors = np.full(c, 0, dtype=np.int32)
         find_core_neighbors_np(c,
