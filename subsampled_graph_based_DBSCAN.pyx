@@ -125,7 +125,7 @@ class SubsampledGraphBasedDBSCAN:
         self.eps = eps
         self.minPts = minPts
 
-    def fit_predict(self, X, neighbors, num_neighbors, cluster_outliers=True):
+    def fit_predict(self, X, neighbors, num_neighbors, cluster_border=True):
         """
         Determines the clusters in three steps.
         First step is to sample points from X using either the
@@ -206,8 +206,8 @@ class SubsampledGraphBasedDBSCAN:
                              closest_core_pt, 
                              result)
         
-        # Set outliers
-        if not cluster_outliers:
+        # Cluster border points
+        if not cluster_border:
           result[dist_sq_to_core_pt[:,0] > self.eps] = -1
 
         return result
