@@ -50,44 +50,25 @@ cdef DBSCAN_np(c, n,
               <int *> np.PyArray_DATA(result))
 
 
-cdef extern from "find_closest_core_pt.h":
-    void find_closest_core_pt_cy(int n,
-                                 int d,
-                                 float * X,
-                                 int * neighbors,
-                                 int * num_neighbors,
-                                 bool * is_core_point,
-                                 int * closest_core_pt,
-                                 float * dist_sq_to_core_pt)
-
-cdef find_closest_core_pt_np(n,
-                             d,
-                             np.ndarray[np.float, ndim=1, mode="c"] X,
-                             np.ndarray[np.int32_t, ndim=1, mode="c"] neighbors,
-                             np.ndarray[np.int32_t, ndim=1, mode="c"] num_neighbors,
-                             np.ndarray[bool, ndim=1, mode="c"] is_core_pt,
-                             np.ndarray[np.int32_t, ndim=1, mode="c"] closest_core_pt,
-                             np.ndarray[np.float, ndim=1, mode="c"] dist_sq_to_core_pt):
-    find_closest_core_pt_cy(n,
-                            d,
-                            <float *> np.PyArray_DATA(X),
-                            <int *> np.PyArray_DATA(neighbors),
-                            <int *> np.PyArray_DATA(num_neighbors),
-                            <bool *> np.PyArray_DATA(is_core_pt),
-                            <int *> np.PyArray_DATA(closest_core_pt),
-                            <float *> np.PyArray_DATA(dist_sq_to_core_pt))
-
-
 cdef extern from "cluster_remaining.h":
     void cluster_remaining_cy(int n,
-                              int * closest_point,
+                              int * neighbors,
+                              float * distances,
+                              int * num_neighbors,
+                              bool * is_core_point,
                               int * result)
 
-cdef cluster_remaining_np(n, 
-                          np.ndarray[int, ndim=1, mode="c"] closest_point,
+cdef cluster_remaining_np(n,
+                          np.ndarray[np.int32_t, ndim=1, mode="c"] neighbors,
+                          np.ndarray[float, ndim=1, mode="c"] distances,
+                          np.ndarray[np.int32_t, ndim=1, mode="c"] num_neighbors,
+                          np.ndarray[bool, ndim=1, mode="c"] is_core_pt,
                           np.ndarray[np.int32_t, ndim=1, mode="c"] result):
     cluster_remaining_cy(n,
-                         <int *> np.PyArray_DATA(closest_point),
+                         <int *> np.PyArray_DATA(neighbors),
+                         <float *> np.PyArray_DATA(distances),
+                         <int *> np.PyArray_DATA(num_neighbors),
+                         <bool *> np.PyArray_DATA(is_core_pt),
                          <int *> np.PyArray_DATA(result))
 
 
@@ -110,7 +91,7 @@ class SubsampledGraphBasedDBSCAN:
         self.eps = eps
         self.minPts = minPts
 
-    def fit_predict(self, X, neighbors, num_neighbors, cluster_border=True):
+    def fit_predict(self, X, neighbors, distances, num_neighbors):
         """
         Determines the clusters in three steps.
         First step is to sample points from X using either the
@@ -123,11 +104,6 @@ class SubsampledGraphBasedDBSCAN:
         ----------
         X: Data matrix. Each row should represent a datapoint in 
            Euclidean space
-        init: String. Either "k-center" for the K-center greedy
-              sampling technique or "uniform" for a uniform random
-              sampling technique
-        cluster_outliers: Boolean. Whether we should cluster the 
-              remaining points
 
         Returns
         ----------
@@ -150,7 +126,7 @@ class SubsampledGraphBasedDBSCAN:
         core_pts = np.arange(n)[is_core_pt]
         c = core_pts.shape[0]
 
-        core_neighbors = np.full(c * c, -1, dtype=np.int32)
+        core_neighbors = np.full(neighbors.shape[0], -1, dtype=np.int32)
         num_core_neighbors = np.full(c, 0, dtype=np.int32)
         find_core_neighbors_np(c,
                                neighbors,
@@ -159,7 +135,7 @@ class SubsampledGraphBasedDBSCAN:
                                core_neighbors,
                                num_core_neighbors)
         
-        # Cluster the core points
+        # Cluster core points
         result = np.full(n, -1, dtype=np.int32)
         DBSCAN_np(c,
                   n,
@@ -168,26 +144,12 @@ class SubsampledGraphBasedDBSCAN:
                   num_core_neighbors,
                   result)
 
-        # Find the closest core point to every data point
-        closest_core_pt = np.full(n, 0, dtype=np.int32)
-        dist_sq_to_core_pt = np.full(n, 0, dtype=np.float32)
-
-        find_closest_core_pt_np(n,
-                                d,
-                                X,
-                                neighbors,
-                                num_neighbors,
-                                is_core_pt,
-                                closest_core_pt,
-                                dist_sq_to_core_pt)
-
-        # Cluster the remaining points
-        cluster_remaining_np(n, 
-                             closest_core_pt, 
+        # Cluster the border points
+        cluster_remaining_np(n,
+                             neighbors,
+                             distances, 
+                             num_neighbors,
+                             is_core_pt,
                              result)
-        
-        # Cluster border points
-        if not cluster_border:
-          result[dist_sq_to_core_pt[:,0] > self.eps] = -1
 
         return result

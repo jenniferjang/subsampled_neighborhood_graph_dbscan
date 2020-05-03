@@ -17,7 +17,6 @@ void find_core_neighbors_cy(int c,
 
     for (int i = 0; i < c; i++) {
 
-        start_ind = num_neighbors[max(i - 1, 0)];
         end_ind = num_neighbors[i];
 
         for (int j = start_ind; j < end_ind; j++) {
@@ -28,6 +27,7 @@ void find_core_neighbors_cy(int c,
         }
         
         num_core_neighbors[i] = cnt;
+        start_ind = num_neighbors[i];
     }
 
 }
