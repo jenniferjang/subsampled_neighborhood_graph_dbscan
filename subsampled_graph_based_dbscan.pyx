@@ -110,8 +110,11 @@ class SubsampledGraphBasedDBSCAN:
         (n, ) cluster labels
         """
 
-        X = np.ascontiguousarray(X)
-        n, d = X.shape
+        # X = np.ascontiguousarray(X)
+        # n, d = X.shape
+
+        n = num_neighbors.shape[0]
+        e = neighbors.shape[0]
 
         # Find core points
         is_core_pt = np.where(num_neighbors >= self.minPts, 1, 0)
@@ -119,7 +122,7 @@ class SubsampledGraphBasedDBSCAN:
         c = core_pts.shape[0]
 
         # Get the core neighbors for each core point
-        core_neighbors = np.full(neighbors.shape[0], -1, dtype=np.int32)
+        core_neighbors = np.full(e, -1, dtype=np.int32)
         num_core_neighbors = np.full(c, 0, dtype=np.int32)
         find_core_neighbors_np(c,
                                neighbors,
