@@ -7,21 +7,6 @@ from sklearn.neighbors import KDTree
 from datetime import datetime
 from random import sample
 
-cdef extern from "find_core_pts.h":
-    void find_core_pts_cy(int n,
-                          int minPts,
-                          int * num_neighbors,
-                          bool * is_core_pt)
-
-cdef find_core_pts_np(n,
-                      minPts, 
-                      np.ndarray[np.int32_t, ndim=1, mode="c"] num_neighbors,
-                      np.ndarray[bool, ndim=1, mode="c"] is_core_pt):
-    find_core_pts_cy(n,
-                     minPts,
-                     <int *> np.PyArray_DATA(num_neighbors),
-                     <bool *> np.PyArray_DATA(is_core_pt))
-
 
 cdef extern from "find_core_neighbors.h":
     void find_core_neighbors_cy(int c,
@@ -161,12 +146,7 @@ class SubsampledGraphBasedDBSCAN:
         #   if len(neighbors[i]) >= self.minPts * self.p:
         #     X_core_ind.append(i)
 
-        is_core_pt = np.full(n, 0, dtype=np.bool)
-        find_core_pts_np(n,
-                         self.minPts,
-                         num_neighbors,
-                         is_core_pt)
-
+        is_core_pt = np.where(num_neighbors >= self.minPts, 1, 0)
         core_pts = np.arange(n)[is_core_pt]
         c = core_pts.shape[0]
 
