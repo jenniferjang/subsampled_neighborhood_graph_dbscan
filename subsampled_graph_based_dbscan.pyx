@@ -151,7 +151,7 @@ class SubsampledGraphBasedDBSCAN:
         c = core_pts.shape[0]
 
         core_neighbors = np.full(c * c, -1, dtype=np.int32)
-        num_core_neighbors = np.full(c, 0, dtype=np.bool)
+        num_core_neighbors = np.full(c, 0, dtype=np.int32)
         find_core_neighbors_np(c,
                                neighbors,
                                num_neighbors,
