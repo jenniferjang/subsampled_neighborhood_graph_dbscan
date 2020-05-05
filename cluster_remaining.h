@@ -24,6 +24,7 @@ void cluster_remaining_cy(int n,
         for (int j = start_ind; j < end_ind; j++) {
             if (is_core_pt[neighbors[j]] > 0 && distances[j] < distance) {
                 result[i] = result[neighbors[j]];
+                distance = distances[j];
             }
         }
 
