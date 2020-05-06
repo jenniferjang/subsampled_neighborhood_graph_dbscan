@@ -14,7 +14,7 @@ cdef DBSCAN_np(c,
                np.ndarray[np.int32_t, ndim=1, mode="c"] neighbors,
                np.ndarray[np.int32_t, ndim=1, mode="c"] num_neighbors_cum,
                np.ndarray[np.int32_t, ndim=1, mode="c"] result):
-    DBSCAN_cy(c, 
+    DBSCAN_cy(c,
               <int *> np.PyArray_DATA(is_core_pt),
               <int *> np.PyArray_DATA(neighbors),
               <int *> np.PyArray_DATA(num_neighbors_cum),
@@ -83,7 +83,7 @@ class SubsampledGraphBasedDBSCAN:
         n = num_neighbors.shape[0]
 
         # Find core points
-        is_core_pt = (num_neighbors >= self.minPts).astype(np.int32)
+        is_core_pt = (num_neighbors >= self.minPts * self.p).astype(np.int32)
         
         # Cluster core points
         result = np.full(n, -1, dtype=np.int32)

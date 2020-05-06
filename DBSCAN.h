@@ -1,4 +1,5 @@
 #include <queue>
+#include <iostream>
 
 using namespace std;
 
@@ -20,11 +21,11 @@ void DBSCAN_cy(int n,
         if (is_core_pt[i] && result[i] == -1) {
             q.push(i);
 
+            result[i] = cnt;
+
             while (!q.empty()) {
                 point = q.front();
                 q.pop();
-
-                result[point] = cnt;
 
                 if (point != 0) {
                     start_ind = num_neighbors_cum[point - 1];
