@@ -1,20 +1,38 @@
 import numpy as np
 cimport numpy as np
+from libcpp.vector cimport vector
+from libcpp.utility cimport pair
+
+
+cdef extern from "construct_neighborhood_graph.h":
+    cdef pair[vector[int], vector[float]] construct_neighborhood_graph_cy(int n,
+                                                                          float p, 
+                                                                          float * X,
+                                                                          int * num_neighbors)
+
+cdef construct_neighborhood_graph_np(n, 
+                                     p,
+                                     np.ndarray[float, ndim=2, mode="c"] X,
+                                     np.ndarray[np.int32_t, ndim=1, mode="c"] num_neighbors):
+    return construct_neighborhood_graph_cy(n,
+                                           p,
+                                           <float *> np.PyArray_DATA(X),
+                                           <int *> np.PyArray_DATA(num_neighbors))
 
 
 cdef extern from "DBSCAN.h":
-    void DBSCAN_cy(int c, 
+    void DBSCAN_cy(int n, 
                    int * is_core_pt,
                    int * neighbors,
                    int * num_neighbors_cum,
                    int * result)
 
-cdef DBSCAN_np(c, 
+cdef DBSCAN_np(n, 
                np.ndarray[np.int32_t, ndim=1, mode="c"] is_core_pt,
                np.ndarray[np.int32_t, ndim=1, mode="c"] neighbors,
                np.ndarray[np.int32_t, ndim=1, mode="c"] num_neighbors_cum,
                np.ndarray[np.int32_t, ndim=1, mode="c"] result):
-    DBSCAN_cy(c,
+    DBSCAN_cy(n,
               <int *> np.PyArray_DATA(is_core_pt),
               <int *> np.PyArray_DATA(neighbors),
               <int *> np.PyArray_DATA(num_neighbors_cum),
@@ -62,7 +80,7 @@ class SubsampledGraphBasedDBSCAN:
         self.eps = eps
         self.minPts = minPts
 
-    def fit_predict(self, neighbors, distances):
+    def fit_predict(self, X):
         """
 
         Parameters
@@ -74,16 +92,22 @@ class SubsampledGraphBasedDBSCAN:
         (n, ) cluster labels
         """
 
-        num_neighbors = np.ascontiguousarray([len(x) for x in neighbors])
-        num_neighbors_cum = np.cumsum(num_neighbors, dtype=np.int32)
-
-        neighbors = np.ascontiguousarray(np.concatenate(neighbors), dtype=np.int32)
-        distances = np.ascontiguousarray(np.concatenate(distances), dtype=np.float32)
+        X = np.ascontiguousarray(X, dtype=np.float32)
+        n, d = X.shape
         
-        n = num_neighbors.shape[0]
-
+        # Construct the neighborhood graph
+        num_neighbors = np.full(n, -1, dtype=np.int32)
+        neighbors, distances = construct_neighborhood_graph_np(n,
+                                                               self.p,
+                                                               X,
+                                                               num_neighbors)
+        neighbors = np.ascontiguousarray(neighbors, dtype=np.int32)
+        distances = np.ascontiguousarray(distances, dtype=np.float32)
+        
         # Find core points
         is_core_pt = (num_neighbors >= self.minPts * self.p).astype(np.int32)
+
+        num_neighbors_cum = np.cumsum(num_neighbors, dtype=np.int32)
         
         # Cluster core points
         result = np.full(n, -1, dtype=np.int32)
