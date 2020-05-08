@@ -101,13 +101,13 @@ class SubsampledGraphBasedDBSCAN:
                                                                self.p,
                                                                X,
                                                                num_neighbors)
+        
         neighbors = np.ascontiguousarray(neighbors, dtype=np.int32)
         distances = np.ascontiguousarray(distances, dtype=np.float32)
+        num_neighbors_cum = np.cumsum(num_neighbors, dtype=np.int32)
         
         # Find core points
         is_core_pt = (num_neighbors >= self.minPts * self.p).astype(np.int32)
-
-        num_neighbors_cum = np.cumsum(num_neighbors, dtype=np.int32)
         
         # Cluster core points
         result = np.full(n, -1, dtype=np.int32)
