@@ -56,8 +56,8 @@ pair< vector<int>, vector<float> > construct_neighborhood_graph_cy(int n,
         neighbors_distances[i].insert(make_pair(i, 0));
       
         // To ensure neighborhood graph is symmetric, we only sample points that come after
-        while (unique.size() < floor(p * (n - i))) {
-          
+        for (int j = 0; j < floor(p * (n - i)); j++) {
+
             int k = rand() % (n-i) + i;
             unique.insert(k);
             distance = sq_euclidean_distance(d, i, k, X);
