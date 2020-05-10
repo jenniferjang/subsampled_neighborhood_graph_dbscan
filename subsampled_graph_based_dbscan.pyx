@@ -2,20 +2,27 @@ import numpy as np
 cimport numpy as np
 from libcpp.vector cimport vector
 from libcpp.utility cimport pair
+from sklearn.neighbors import KDTree
 
 
 cdef extern from "construct_neighborhood_graph.h":
     cdef pair[vector[int], vector[float]] construct_neighborhood_graph_cy(int n,
+                                                                          int d, 
                                                                           float p, 
+                                                                          float eps, 
                                                                           float * X,
                                                                           int * num_neighbors)
 
 cdef construct_neighborhood_graph_np(n, 
+                                     d,
                                      p,
+                                     eps,
                                      np.ndarray[float, ndim=2, mode="c"] X,
                                      np.ndarray[np.int32_t, ndim=1, mode="c"] num_neighbors):
     return construct_neighborhood_graph_cy(n,
+                                           d,
                                            p,
+                                           eps,
                                            <float *> np.PyArray_DATA(X),
                                            <int *> np.PyArray_DATA(num_neighbors))
 
@@ -80,32 +87,24 @@ class SubsampledGraphBasedDBSCAN:
         self.eps = eps
         self.minPts = minPts
 
-    def fit_predict(self, X):
+    def test(self, neighbors, distances):
         """
-
         Parameters
         ----------
         
-
         Returns
         ----------
         (n, ) cluster labels
         """
 
-        X = np.ascontiguousarray(X, dtype=np.float32)
-        n, d = X.shape
-        
-        # Construct the neighborhood graph
-        num_neighbors = np.full(n, -1, dtype=np.int32)
-        neighbors, distances = construct_neighborhood_graph_np(n,
-                                                               self.p,
-                                                               X,
-                                                               num_neighbors)
-        
-        neighbors = np.ascontiguousarray(neighbors, dtype=np.int32)
-        distances = np.ascontiguousarray(distances, dtype=np.float32)
+        num_neighbors = np.ascontiguousarray([len(x) for x in neighbors])
         num_neighbors_cum = np.cumsum(num_neighbors, dtype=np.int32)
+
+        neighbors = np.ascontiguousarray(np.concatenate(neighbors), dtype=np.int32)
+        distances = np.ascontiguousarray(np.concatenate(distances), dtype=np.float32)
         
+        n = num_neighbors.shape[0]
+
         # Find core points
         is_core_pt = (num_neighbors >= self.minPts * self.p).astype(np.int32)
         
@@ -123,6 +122,56 @@ class SubsampledGraphBasedDBSCAN:
                              neighbors,
                              num_neighbors_cum, 
                              distances,
+                             is_core_pt,
+                             result)
+
+        return result
+
+    def fit_predict(self, X):
+        """
+
+        Parameters
+        ----------
+        
+
+        Returns
+        ----------
+        (n, ) cluster labels
+        """
+
+        X = np.ascontiguousarray(X, dtype=np.float32)
+        n, d = X.shape
+        
+        # Construct the neighborhood graph
+        num_neighbors = np.full(n, -1, dtype=np.int32)
+        neighbors, sq_distances = construct_neighborhood_graph_np(n,
+                                                                  d, 
+                                                                  self.p,
+                                                                  self.eps,
+                                                                  X,
+                                                                  num_neighbors)
+
+        neighbors = np.ascontiguousarray(neighbors, dtype=np.int32)
+        sq_distances = np.ascontiguousarray(sq_distances, dtype=np.float32)
+        num_neighbors_cum = np.cumsum(num_neighbors, dtype=np.int32)
+
+        # Find core points
+        is_core_pt = (num_neighbors >= self.minPts * self.p).astype(np.int32)
+
+        # Cluster core points
+        result = np.full(n, -1, dtype=np.int32)
+        DBSCAN_np(n,
+                  is_core_pt,
+                  neighbors,
+                  num_neighbors_cum,
+                  result)
+
+        
+        # Cluster the border points
+        cluster_remaining_np(n,
+                             neighbors,
+                             num_neighbors_cum, 
+                             sq_distances,
                              is_core_pt,
                              result)
 
