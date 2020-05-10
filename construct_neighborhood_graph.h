@@ -40,7 +40,7 @@ pair< vector<int>, vector<float> > construct_neighborhood_graph_cy(int n,
 
     */
 
-    set< pair<int, float> > neighbors_distances[n];
+    vector<set< pair<int, float> >> neighbors_distances(n);
     vector<int> neighbors;
     vector<float> distances;
     float distance;
