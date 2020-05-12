@@ -3,7 +3,6 @@
 #include <cmath>
 #include <set>
 #include <random>
-#include <iostream>
 
 using namespace std;
 
@@ -40,48 +39,44 @@ pair< vector<int>, vector<float> > construct_neighborhood_graph_cy(int n,
 
     */
 
-    vector<set< pair<int, float> >> neighbors_distances(n);
-    vector<int> neighbors;
-    vector<float> distances;
+    vector<vector< pair<int, float> > > neighbors_distances(n);
     float distance;
     float sq_eps = pow(eps, 2);
-    set<int> unique;
 
     for (int i = 0; i < n; i++) {
-        neighbors_distances[i] = set< pair<int, float> >();
+        neighbors_distances[i] = vector< pair<int, float> >();
     }
 
     for (int i = 0; i < n; i++) {
 
-        neighbors_distances[i].insert(make_pair(i, 0));
+        neighbors_distances[i].push_back(make_pair(i, 0));
       
         // To ensure neighborhood graph is symmetric, we only sample points that come after
         for (int j = 0; j < floor(p * (n - i)); j++) {
 
             int k = rand() % (n-i) + i;
-            unique.insert(k);
             distance = sq_euclidean_distance(d, i, k, X);
 
             if (distance <= sq_eps) {
               
                 // Add edge between both vertices
-                neighbors_distances[i].insert(make_pair(k, distance));
-                neighbors_distances[k].insert(make_pair(i, distance));
+                neighbors_distances[i].push_back(make_pair(k, distance));
+                neighbors_distances[k].push_back(make_pair(i, distance));
             }
         }
 
         num_neighbors[i] = neighbors_distances[i].size();
-        unique.clear();
     }
 
 
+    vector<int> neighbors;
+    vector<float> distances;
+
     for (int i = 0; i < n; i++) {
 
-        set< pair<int, float> >::iterator it;
-
-        for (it = neighbors_distances[i].begin(); it != neighbors_distances[i].end(); ++it) {
-            neighbors.push_back(it->first);
-            distances.push_back(it->second);
+        for (int j = 0; j < neighbors_distances[i].size(); j++) {
+            neighbors.push_back(neighbors_distances[i][j].first);
+            distances.push_back(neighbors_distances[i][j].second);
         }
     }
 
