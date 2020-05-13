@@ -1,8 +1,6 @@
-#include <vector>
 #include <utility>
-#include <cmath>
-#include <set>
 #include <random>
+#include <iostream>
 
 using namespace std;
 
@@ -28,59 +26,56 @@ float sq_euclidean_distance(int d, int i, int j, float * X) {
 }
 
 
-pair< vector<int>, vector<float> > construct_neighborhood_graph_cy(int n, 
-                                                                   int d,
-                                                                   float p,
+void construct_neighborhood_graph_cy(float p, int pn, int n,
+                                                                   int d, 
                                                                    float eps,
                                                                    float * X,
+                                                                   int * neighbors,
+                                                                   float * distances,
                                                                    int * num_neighbors) {
     /*
         
 
     */
 
-    int[p * n * n] test;
-    vector<vector< pair<int, float> > > neighbors_distances(n);
-    float distance;
-    float sq_eps = pow(eps, 2);
+    float distance, tmp;
     int neighbor;
-
-    for (int i = 0; i < n; i++) {
-        neighbors_distances[i] = vector< pair<int, float> >();
-    }
+    float sq_eps = eps * eps;
 
     for (int i = 0; i < n; i++) {
 
-        neighbors_distances[i].push_back(make_pair(i, 0));
+        neighbors[i * pn + num_neighbors[i]] = i;
+        num_neighbors[i]++;
       
         // To ensure neighborhood graph is symmetric, we only sample points that come after
-        for (int j = 0; j < floor(p * (n - i)); j++) {
+        for (int j = 0; j < floor(p * (n - i)) - 1; j++) {
 
-            int neighbor = rand() % (n-i) + i;
-            distance = sq_euclidean_distance(d, i, neighbor, X);
+            low = i + 1;
+            high = n - 1;
+            neighbor = rand() % (high - low + 1) + low;
 
-            if (distance <= sq_eps) {
+            distance = 0; //sq_euclidean_distance(d, i, neighbor, X);
+            //cout << "i " << i << " j " << j << " distance " << distance << " i * pn " << i * pn << " neighbor " << neighbor << " num_neighbors[i] " << num_neighbors[i] << endl;
+
+            for (int k = 0; k < d; k++) {
+              
+                tmp = X[i * d + k] - X[j * d + k];
+                distance += tmp * tmp;
+                if (distance > sq_eps) break;
+            }
+
+            if ((distance <= sq_eps) && (num_neighbors[i] < pn)) {
               
                 // Add edge between both vertices
-                neighbors_distances[i].push_back(make_pair(neighbor, distance));
-                neighbors_distances[neighbor].push_back(make_pair(i, distance));
+                neighbors[i * pn + num_neighbors[i]] = neighbor;
+                neighbors[neighbor * pn + num_neighbors[neighbor]] = i;
+
+                // distances[i * pn + num_neighbors[i]] = distance;
+                // distances[neighbor * pn + num_neighbors[neighbor]] = distance;
+
+                num_neighbors[i]++;
+                num_neighbors[neighbor]++;
             }
         }
-
-        num_neighbors[i] = neighbors_distances[i].size();
     }
-
-
-    vector<int> neighbors;
-    vector<float> distances;
-
-    for (int i = 0; i < n; i++) {
-
-        for (int j = 0; j < neighbors_distances[i].size(); j++) {
-            neighbors.push_back(neighbors_distances[i][j].first);
-            distances.push_back(neighbors_distances[i][j].second);
-        }
-    }
-
-    return make_pair(neighbors, distances);
 }

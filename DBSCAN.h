@@ -1,9 +1,11 @@
 #include <queue>
+#include <iostream>
 
 using namespace std;
 
 
-void DBSCAN_cy(int n,
+void DBSCAN_cy(int pn,
+               int n,
                int * is_core_pt,
                int * neighbors,
                int * num_neighbors_cum,
@@ -13,7 +15,8 @@ void DBSCAN_cy(int n,
     */
 
     queue<int> q = queue<int>();
-    int neighbor, start_ind, end_ind, point, cnt = 0;
+    int neighbor, start_ind, end_ind, point;
+    int cnt = 0;
 
     for (int i = 0; i < n; i++) {
 
@@ -36,8 +39,10 @@ void DBSCAN_cy(int n,
                 }
                 end_ind = num_neighbors_cum[point];
 
-                for (int j = start_ind; j < end_ind; j++) {
-                    neighbor = neighbors[j];
+                for (int j = 0; j < pn; j++) {
+
+                    neighbor = neighbors[point * pn + j];
+                    if (neighbor < 0) break;
 
                     if (is_core_pt[neighbor] && result[neighbor] == -1) {
                         q.push(neighbor);

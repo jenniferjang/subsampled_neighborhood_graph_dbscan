@@ -2,7 +2,7 @@
 
 using namespace std;
 
-void cluster_remaining_cy(int n,
+void cluster_remaining_cy(int pn, int n,
                           int * neighbors,
                           int * num_neighbors_cum,
                           float * distances,
@@ -13,18 +13,25 @@ void cluster_remaining_cy(int n,
 
     */
 
-    int start_ind = 0, end_ind = 0;
-    float distance;
+    int start_ind = 0;
+    int end_ind = 0;
+    int neighbor;
+    //float distance;
 
     for (int i = 0; i < n; i++) {
 
         end_ind = num_neighbors_cum[i];
-        distance = numeric_limits<float>::max();    
+        //distance = numeric_limits<float>::max();
 
-        for (int j = start_ind; j < end_ind; j++) {
-            if (is_core_pt[neighbors[j]] > 0 && distances[j] < distance) {
-                result[i] = result[neighbors[j]];
-                distance = distances[j];
+        for (int j = 0; j < pn; j++) {
+
+            neighbor = neighbors[i * pn + j];
+            if (neighbor < 0) break;
+
+            if (is_core_pt[neighbor] > 0) {// && distances[i * pn + j] < distance) {
+                result[i] = result[neighbor];
+                //distance = distances[i * pn + j];
+                break;
             }
         }
 
