@@ -5,7 +5,6 @@ using namespace std;
 void cluster_remaining_cy(int pn, int n,
                           int * neighbors,
                           int * num_neighbors_cum,
-                          float * distances,
                           int * is_core_pt,
                           int * result) {
     /*

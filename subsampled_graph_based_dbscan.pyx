@@ -10,7 +10,6 @@ cdef extern from "construct_neighborhood_graph.h":
                                                                           float eps, 
                                                                           float * X,
                                                                           int * neighbors,
-                                                                          float * distances,
                                                                           int * num_neighbors)
 
 cdef construct_neighborhood_graph_np(p, pn,
@@ -19,14 +18,12 @@ cdef construct_neighborhood_graph_np(p, pn,
                                      eps,
                                      np.ndarray[float, ndim=2, mode="c"] X,
                                      np.ndarray[np.int32_t, ndim=1, mode="c"] neighbors,
-                                     np.ndarray[float, ndim=1, mode="c"] distances,
                                      np.ndarray[np.int32_t, ndim=1, mode="c"] num_neighbors):
     construct_neighborhood_graph_cy(p, pn, n,
                                            d,
                                            eps,
                                            <float *> np.PyArray_DATA(X),
                                            <int *> np.PyArray_DATA(neighbors),
-                                           <float *> np.PyArray_DATA(distances),
                                            <int *> np.PyArray_DATA(num_neighbors))
 
 
@@ -53,20 +50,17 @@ cdef extern from "cluster_remaining.h":
     void cluster_remaining_cy(int pn, int n,
                               int * neighbors,
                               int * num_neighbors_cum,
-                              float * distances,
                               int * is_core_pt,
                               int * result)
 
 cdef cluster_remaining_np(pn, n,
                           np.ndarray[np.int32_t, ndim=1, mode="c"] neighbors,
                           np.ndarray[np.int32_t, ndim=1, mode="c"] num_neighbors_cum,
-                          np.ndarray[float, ndim=1, mode="c"] distances,
                           np.ndarray[np.int32_t, ndim=1, mode="c"] is_core_pt,
                           np.ndarray[np.int32_t, ndim=1, mode="c"] result):
     cluster_remaining_cy(pn, n,
                          <int *> np.PyArray_DATA(neighbors),
                          <int *> np.PyArray_DATA(num_neighbors_cum),
-                         <float *> np.PyArray_DATA(distances),
                          <int *> np.PyArray_DATA(is_core_pt),
                          <int *> np.PyArray_DATA(result))
 
@@ -109,7 +103,6 @@ class SubsampledGraphBasedDBSCAN:
         
         # Construct the neighborhood graph
         neighbors = np.full(pn * n, -1, dtype=np.int32)
-        distances = np.full(pn * n, 0, dtype=np.float32)
         num_neighbors = np.full(n, 0, dtype=np.int32)
         construct_neighborhood_graph_np(self.p, pn,
                                         n,
@@ -117,7 +110,6 @@ class SubsampledGraphBasedDBSCAN:
                                         self.eps,
                                         X,
                                         neighbors,
-                                        distances,
                                         num_neighbors)
 
         #print list(neighbors), list(distances), list(num_neighbors)
@@ -140,7 +132,6 @@ class SubsampledGraphBasedDBSCAN:
         cluster_remaining_np(pn, n,
                              neighbors,
                              num_neighbors_cum,
-                             distances,
                              is_core_pt,
                              result)
 

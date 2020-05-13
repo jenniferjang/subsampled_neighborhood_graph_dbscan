@@ -34,7 +34,6 @@ void construct_neighborhood_graph_cy(float p, int pn, int n,
                                                                    float eps,
                                                                    float * X,
                                                                    int * neighbors,
-                                                                   float * distances,
                                                                    int * num_neighbors) {
     /*
         
