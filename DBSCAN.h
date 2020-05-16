@@ -4,17 +4,16 @@ using namespace std;
 
 
 void DBSCAN(float p,
-               int n,
-               bool * is_core_pt,
-               vector<int> & neighbors,
-               // int * num_neighbors_cum,
-               int * result) {
+            int n,
+            vector<bool> & is_core_pt,
+            vector<int> & neighbors,
+            int * result) {
     /*
         
     */
 
     queue<int> q = queue<int>();
-    int neighbor, point; // start_ind, end_ind, 
+    int neighbor, point;
     int cnt = 0;
 
     for (int i = 0; i < n; i++) {
