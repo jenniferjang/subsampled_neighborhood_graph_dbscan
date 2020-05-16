@@ -6,7 +6,7 @@ void cluster_remaining(float p,
                        int n,
                        vector<int> & neighbors,
                        vector<bool> & is_core_pt,
-                       vector<int> & result) {
+                       int * result) {
     /*
         
 
