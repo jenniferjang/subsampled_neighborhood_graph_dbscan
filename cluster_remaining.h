@@ -22,7 +22,6 @@ void cluster_remaining(float p,
             if (neighbor < 0) break;
 
             if (is_core_pt[neighbor]) {
-
                 result[i] = result[neighbor];
                 break;
             }
