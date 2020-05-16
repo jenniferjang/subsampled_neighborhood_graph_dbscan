@@ -1,21 +1,20 @@
 #include <queue>
-#include <iostream>
 
 using namespace std;
 
 
-void DBSCAN_cy(int pn,
+void DBSCAN(float p,
                int n,
-               int * is_core_pt,
-               int * neighbors,
-               int * num_neighbors_cum,
+               bool * is_core_pt,
+               vector<int> & neighbors,
+               // int * num_neighbors_cum,
                int * result) {
     /*
         
     */
 
     queue<int> q = queue<int>();
-    int neighbor, start_ind, end_ind, point;
+    int neighbor, point; // start_ind, end_ind, 
     int cnt = 0;
 
     for (int i = 0; i < n; i++) {
@@ -32,16 +31,8 @@ void DBSCAN_cy(int pn,
                 point = q.front();
                 q.pop();
 
-                if (point != 0) {
-                    start_ind = num_neighbors_cum[point - 1];
-                } else {
-                    start_ind = 0;
-                }
-                end_ind = num_neighbors_cum[point];
-
-                for (int j = 0; j < pn; j++) {
-
-                    neighbor = neighbors[point * pn + j];
+                for (int j = 0; j < p * n; j++) {
+                    neighbor = neighbors[point * int(p * n) + j];
                     if (neighbor < 0) break;
 
                     if (is_core_pt[neighbor] && result[neighbor] == -1) {
