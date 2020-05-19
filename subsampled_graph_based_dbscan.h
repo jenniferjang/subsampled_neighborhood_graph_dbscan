@@ -19,16 +19,13 @@ void construct_neighborhood_graph(float p,
     float distance;
     int neighbor, low, high;
     float sq_eps = eps * eps;
-    int pn = p * n;
+    unsigned long pn = p * n;
 
     for (int i = 0; i < n; i++) {
-        neighbors[i * pn + num_neighbors[i]] = i;
-        num_neighbors[i]++;
-      
         // To ensure neighborhood graph is symmetric, we only sample points that come after
-        for (int j = 0; j < int(p * (n - i)) - 1; j++) {
+        for (int j = 0; j < p * n - i; j++) {
 
-            low = i + 1;
+            low = i;
             high = n - 1;
             neighbor = rand() % (high - low + 1) + low;
             
@@ -38,11 +35,11 @@ void construct_neighborhood_graph(float p,
                 if (distance > sq_eps) break;
             }
 
-            if ((distance <= sq_eps) && (num_neighbors[i] < pn)) {
+            if ((distance <= sq_eps) && (num_neighbors[i] < p * n) && (num_neighbors[neighbor] < p * n)) {
               
                 // Add edge between both vertices
-                neighbors[i * pn + num_neighbors[i]] = neighbor;
-                neighbors[neighbor * pn + num_neighbors[neighbor]] = i;
+                neighbors[pn * i + num_neighbors[i]] = neighbor;
+                neighbors[pn * neighbor + num_neighbors[neighbor]] = i;
 
                 num_neighbors[i]++;
                 num_neighbors[neighbor]++;
@@ -64,6 +61,7 @@ void DBSCAN(float p,
     queue<int> q = queue<int>();
     int neighbor, point;
     int cnt = 0;
+    unsigned long pn = p * n;
 
     for (int i = 0; i < n; i++) {
 
@@ -80,7 +78,7 @@ void DBSCAN(float p,
                 q.pop();
 
                 for (int j = 0; j < p * n; j++) {
-                    neighbor = neighbors[point * int(p * n) + j];
+                    neighbor = neighbors[pn * point + j];
                     if (neighbor < 0) break;
 
                     if (is_core_pt[neighbor] && result[neighbor] == -1) {
@@ -109,12 +107,13 @@ void cluster_remaining(float p,
     */
 
     int neighbor;
+    unsigned long pn = p * n;
 
     for (int i = 0; i < n; i++) {
 
         for (int j = 0; j < p * n; j++) {
 
-            neighbor = neighbors[i * int(p * n) + j];
+            neighbor = neighbors[pn * i + j];
             if (neighbor < 0) break;
 
             if (is_core_pt[neighbor]) {
@@ -138,9 +137,11 @@ void SubsampledGraphBasedDBSCAN_cy(float p,
 
     */
 
-    vector<int> neighbors (int(p * n) * n);
+    unsigned long pn = p * n;
+    vector<int> neighbors (pn * n);
     vector<int> num_neighbors (n);
     vector<bool> is_core_pt (n);
+
 	fill(num_neighbors.begin(), num_neighbors.end(), 0);
 	fill(neighbors.begin(), neighbors.end(), -1);
 
@@ -149,7 +150,7 @@ void SubsampledGraphBasedDBSCAN_cy(float p,
 
 	// Find core points
 	for (int i = 0; i < n; i++) {
-		is_core_pt[i] = num_neighbors[i] >= max(minPts * p, float(2));
+		is_core_pt[i] = num_neighbors[i] >= minPts * p;
 	}
 
 	// Cluster core points
