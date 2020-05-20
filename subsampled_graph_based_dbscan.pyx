@@ -4,6 +4,31 @@ from sklearn.neighbors import KDTree
 from datetime import datetime
 
 
+cdef extern from "subsampled_graph_based_dbscan_preallocated.h":
+    void SubsampledGraphBasedDBSCAN_preallocated_cy(float p, 
+                                                    int n,
+                                                    int d, 
+                                                    float eps, 
+                                                    int minPts,
+                                                    float * X,
+                                                    int * result)
+
+cdef SubsampledGraphBasedDBSCAN_preallocated_np(p, 
+                                                n, 
+                                                d,
+                                                eps,
+                                                minPts,
+                                                np.ndarray[float, ndim=2, mode="c"] X,
+                                                np.ndarray[np.int32_t, ndim=1, mode="c"] result):
+    SubsampledGraphBasedDBSCAN_preallocated_cy(p, 
+                                               n,
+                                               d,
+                                               eps,
+                                               minPts,
+                                               <float *> np.PyArray_DATA(X),
+                                               <int *> np.PyArray_DATA(result))
+
+
 cdef extern from "subsampled_graph_based_dbscan.h":
     void SubsampledGraphBasedDBSCAN_cy(float p, 
                                        int n,
@@ -24,7 +49,7 @@ cdef SubsampledGraphBasedDBSCAN_np(p,
                                   n,
                                   d,
                                   eps,
-                                  minPts,
+                                   minPts,
                                   <float *> np.PyArray_DATA(X),
                                   <int *> np.PyArray_DATA(result))
 
@@ -49,10 +74,10 @@ class SubsampledGraphBasedDBSCAN:
         self.minPts = minPts
 
 
-    def fit_predict(self, X):
+    def fit_predict(self, X, preallocated=True):
         """
 
-        Parameters
+        Parameters 
         ----------
         
 
@@ -64,6 +89,10 @@ class SubsampledGraphBasedDBSCAN:
         X = np.ascontiguousarray(X, dtype=np.float32)
         n, d = X.shape
         result = np.full(n, -1, dtype=np.int32)
-        SubsampledGraphBasedDBSCAN_np(self.p, n, d, self.eps, self.minPts, X, result)
+
+        if preallocated:
+          SubsampledGraphBasedDBSCAN_preallocated_np(self.p, n, d, self.eps, self.minPts, X, result)
+        else:
+          SubsampledGraphBasedDBSCAN_np(self.p, n, d, self.eps, self.minPts, X, result)
 
         return result
