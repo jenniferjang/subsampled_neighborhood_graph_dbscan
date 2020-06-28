@@ -9,7 +9,7 @@ def subsampled_neighbors(X, epsilon, s,
 
   neighbors = np.array([], dtype=bool)
   neighborptr = np.array([0], dtype=np.int32)
-  distances = []
+  distances = np.array([], dtype=np.float)
 
   for i in range(n):
     subsampled = np.append([i], np.random.choice(np.arange(i + 1, n), size=int((n - i -1) * s), replace=False))
