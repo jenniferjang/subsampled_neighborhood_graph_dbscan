@@ -1,5 +1,5 @@
-from scipy.sparse import csr_matrix, coo_matrix
-from sklearn.metrics.pairwise import paired_distances, euclidean_distances
+from scipy.sparse import csr_matrix
+from sklearn.metrics.pairwise import paired_distances
 import numpy as np
 
 def subsampled_neighbors(X, epsilon, s,
@@ -30,7 +30,6 @@ def subsampled_neighbors(X, epsilon, s,
     return neighborhood
 
 X = np.array([[1, 2, 3], [2, 3, 4], [3, 4, 5], [6, 7, 8]])
-print(euclidean_distances(X))
 neighbors, distances = subsampled_neighbors(X, 4.0, 1.0, return_distances=True)
 print(neighbors.toarray())
 print(distances.toarray())
