@@ -5,13 +5,14 @@ import numpy as np
 def subsampled_neighbors(X, epsilon, s,
                          return_distances=False,
                          metric='euclidean'):
-  n, m = X.shape
+  n = X.shape[0]
 
   neighbors = np.array([], dtype=bool)
   neighborptr = np.array([0], dtype=np.int32)
   distances = np.array([], dtype=np.float)
 
-  for i in range(n):
+  for i in range(X.shape[0]):
+    # Sample the neighbors
     subsampled = np.append([i], np.random.choice(np.arange(i + 1, n), size=int((n - i -1) * s), replace=False))
     
     # This seems inefficient; I can just rewrite paired_distances to 
@@ -24,15 +25,14 @@ def subsampled_neighbors(X, epsilon, s,
     if return_distances:
       distances = np.append(distances, dist[dist <= epsilon])
 
-  neighborhood = csr_matrix((np.ones(len(neighbors), dtype=bool), 
-    neighbors, neighborptr))
+  neighborhood = csr_matrix((np.ones(len(neighbors)), neighbors, neighborptr), dtype=bool)
 
   # Make the matrix symmetric
   neighborhood_t = neighborhood.transpose()
   neighborhood += neighborhood_t
 
   if return_distances:
-    neighborhood_distances = csr_matrix((distances, neighbors, neighborptr))
+    neighborhood_distances = csr_matrix((distances, neighbors, neighborptr), dtype=np.float)
 
     # Make the matrix symmetric
     neighborhood_distances_t = neighborhood_distances.transpose()
