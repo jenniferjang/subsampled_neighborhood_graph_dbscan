@@ -23,8 +23,7 @@ def subsampled_neighbors(X, s, metric='euclidean'):
   neighborhood = csr_matrix((distances, (rows, columns)), shape=(n, n), dtype=np.float)
   
   # Make the matrix symmetric
-  neighborhood_t = neighborhood.transpose()
-  neighborhood += neighborhood_t
+  neighborhood += neighborhood.transpose()
 
   return neighborhood
 
