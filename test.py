@@ -9,6 +9,8 @@ def subsampled_neighbors(X, s, metric='euclidean'):
   # Sample the neighbors
   x = np.random.choice(np.arange(n), size=n_pairs, replace=True)
   y = np.random.choice(np.arange(n), size=n_pairs, replace=True)
+
+  # Remove duplicates
   neighbors = np.unique(np.column_stack((x, y)), axis=0)
 
   # Upper triangularize the matrix
