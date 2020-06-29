@@ -4,11 +4,11 @@ import numpy as np
 
 def subsampled_neighbors(X, s, metric='euclidean'):
   n = X.shape[0]
-  n_pairs = int(n * n * s) # Because we're sampling with replacement, we don't really get enough points
 
   # Sample the neighbors
-  x = np.random.choice(np.arange(n), size=n_pairs, replace=True)
-  y = np.random.choice(np.arange(n), size=n_pairs, replace=True)
+  # Because we're sampling with replacement, we don't really get enough points
+  x = np.random.choice(np.arange(n), size=int(n * n * s), replace=True)
+  y = np.random.choice(np.arange(n), size=int(n * n * s), replace=True)
 
   # Remove duplicates
   neighbors = np.unique(np.column_stack((x, y)), axis=0)
