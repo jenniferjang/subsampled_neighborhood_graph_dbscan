@@ -140,13 +140,13 @@ class SubsampledNeighborsTransformer(TransformerMixin, UnsupervisedMixin,
     i = neighbors[:, 0]
     j = neighbors[:, 1]
 
-    # Compute the edge weights
+    # Compute the edge weights for the remaining edges
     if len(neighbors) > 0:
       distances = paired_distances(X[i], X[j], metric=metric)
     else:
       distances = []
 
-    # Create the distance matrix in CSR format for the remaining edges
+    # Create the distance matrix in CSR format 
     neighborhood = csr_matrix((distances, (i, j)), shape=(n_samples, n_samples), 
       dtype=np.float)
     
