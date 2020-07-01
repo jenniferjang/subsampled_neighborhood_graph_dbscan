@@ -4,7 +4,6 @@ from sklearn.utils.validation import check_is_fitted
 from sklearn.neighbors._base import UnsupervisedMixin
 from sklearn.base import TransformerMixin, BaseEstimator
 import numpy as np
-from scipy.sparse import csr_matrix
 
 
 class SubsampledNeighborsTransformer(TransformerMixin, UnsupervisedMixin, 
@@ -17,14 +16,6 @@ class SubsampledNeighborsTransformer(TransformerMixin, UnsupervisedMixin,
 
 
   def _fit(self, X):
-    """Fit the model using X as training data. 
-
-    Parameters
-    ----------
-    X : array-like of shape (n_samples_transform, n_features)
-        Sample data.
-    """
-
     if self.s <= 0 or self.s > 1:
       raise ValueError("Sampling rate needs to be in (0, 1]: %s" % self.s)
 
@@ -34,7 +25,7 @@ class SubsampledNeighborsTransformer(TransformerMixin, UnsupervisedMixin,
 
 
   def transform(self, X):
-    """Computes the subsampled graph of neighbors for points in X.
+    """Transform data into a subsampled graph of neighbors.
 
     Parameters
     ----------
@@ -43,8 +34,8 @@ class SubsampledNeighborsTransformer(TransformerMixin, UnsupervisedMixin,
 
     Returns
     -------
-    neighborhood : sparse matrix shape (n_samples, n_samples)
-        Non-zero entries in matrix neighborhood[i, j] indicate an edge 
+    neighborhood : sparse matrix of shape (n_samples, n_samples)
+        Non-zero entries in neighborhood[i, j] indicate an edge 
         between X[i] and X[j] with value equal to weight of edge.
         The matrix is of CSR format.
     """
@@ -60,13 +51,14 @@ class SubsampledNeighborsTransformer(TransformerMixin, UnsupervisedMixin,
     Parameters
     ----------
     X : array-like of shape (n_samples, n_features)
-        Training set.
+        Sample data.
     y : ignored
 
     Returns
     -------
-    Xt : sparse matrix of shape (n_samples, n_samples)
-        Xt[i, j] is assigned the weight of edge that connects i to j.
+    neighborhood : sparse matrix of shape (n_samples, n_samples)
+        Non-zero entries in neighborhood[i, j] indicate an edge 
+        between X[i] and X[j] with value equal to weight of edge.
         The matrix is of CSR format.
     """
     
@@ -74,7 +66,7 @@ class SubsampledNeighborsTransformer(TransformerMixin, UnsupervisedMixin,
 
 
   def subsampled_neighbors(self, X, s, metric='euclidean', random_state=None):
-    """Computes the subsampled graph of neighbors for points in X.
+    """Compute the subsampled graph of neighbors for points in X.
 
     Parameters
     ----------
@@ -82,40 +74,39 @@ class SubsampledNeighborsTransformer(TransformerMixin, UnsupervisedMixin,
         Sample data.
 
     s : float
-        What fraction of the neighborhood edges we want to keep. 
+        Sampling probability.
 
     metric : string or callable, default='euclidean'
         Input to paired_distances function. Can be string specified 
         in PAIRED_DISTANCES, including "euclidean", "manhattan", or 
-        "cosine". Alternatively, can be a callable function, which should 
+        "cosine." Alternatively, can be a callable function, which should 
         take two arrays from X as input and return a value indicating 
         the distance between them.
 
     random_state : int, RandomState instance, default=None
-        Determines random number generation for rotation matrix initialization.
-        Use an int to make the randomness deterministic.
+        Seeds the random sampling of lists of vertices. Use an int to 
+        make the randomness deterministic.
         See :term:`Glossary <random_state>`.
 
     Returns
     -------
-    neighborhood : sparse matrix shape (n_samples, n_samples)
-        Non-zero entries in distance matrix neighborhood[i, j] indicate 
-        an edge between X[i] and X[j].
-        The diagonal is always explicit.
+    neighborhood : sparse matrix of shape (n_samples, n_samples)
+        Non-zero entries in neighborhood[i, j] indicate an edge 
+        between X[i] and X[j] with value equal to weight of edge.
         The matrix is of CSR format.
 
     References
     ----------
     - Faster DBSCAN via subsampled similarity queries, 2020
       Heinrich Jiang, Jennifer Jang, Jakub Łącki
-      https://arxiv.org/pdf/2006.06743.pdf
+      https://arxiv.org/abs/2006.06743
 
     Notes
     -----
     Each edge in the fully connected graph of X is sampled with probability s
     with replacement. We sample two arrays of n_samples * n_samples * s vertices 
     from X with replacement. Since (i, j) is equivalent to (j, i), we discard any 
-    pairs where j >= i. We keep the neighborhood matrix symmetric by adding its 
+    pairs where j >= i. We ensure symmetry by adding the neighborhood matrix to its 
     transpose. 
     """
 
