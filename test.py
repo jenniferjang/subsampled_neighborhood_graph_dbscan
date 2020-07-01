@@ -4,6 +4,7 @@ from sklearn.utils.validation import check_is_fitted
 from sklearn.neighbors._base import UnsupervisedMixin
 from sklearn.base import TransformerMixin, BaseEstimator
 import numpy as np
+from scipy.sparse import csr_matrix
 
 
 class SubsampledNeighborsTransformer(TransformerMixin, UnsupervisedMixin, 
@@ -26,11 +27,6 @@ class SubsampledNeighborsTransformer(TransformerMixin, UnsupervisedMixin,
 
     if self.s <= 0 or self.s > 1:
       raise ValueError("Sampling rate needs to be in (0, 1]: %s" % self.s)
-
-    n_samples = X.shape[0]
-
-    if n_samples * n_samples * self.s < 1:
-      raise ValueError("Sampling rate too low, no edges sampled: %s" % self.s)
 
     self.s_ = self.s
 
@@ -71,7 +67,6 @@ class SubsampledNeighborsTransformer(TransformerMixin, UnsupervisedMixin,
     -------
     Xt : sparse matrix of shape (n_samples, n_samples)
         Xt[i, j] is assigned the weight of edge that connects i to j.
-        Only the neighbors have an explicit value.
         The matrix is of CSR format.
     """
     
@@ -145,8 +140,13 @@ class SubsampledNeighborsTransformer(TransformerMixin, UnsupervisedMixin,
     i = neighbors[:, 0]
     j = neighbors[:, 1]
 
+    # Compute the edge weights
+    if len(neighbors) > 0:
+      distances = paired_distances(X[i], X[j], metric=metric)
+    else:
+      distances = []
+
     # Create the distance matrix in CSR format for the remaining edges
-    distances = paired_distances(X[i], X[j], metric=metric)
     neighborhood = csr_matrix((distances, (i, j)), shape=(n_samples, n_samples), 
       dtype=np.float)
     
