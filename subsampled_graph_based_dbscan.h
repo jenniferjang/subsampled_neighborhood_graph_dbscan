@@ -9,7 +9,7 @@ void construct_neighborhood_graph(float p,
                                   int d, 
                                   float eps,
                                   float * X,
-                                  vector< vector<int> > & neighbors) {
+                                  vector< vector< pair<float, int> > > & neighbors) {
     /*
         
 
@@ -18,9 +18,9 @@ void construct_neighborhood_graph(float p,
     float distance;
     int neighbor, low, high;
     float sq_eps = eps * eps;
+    int t = 0;
 
     for (int i = 0; i < n; i++) {
-      
         // To ensure neighborhood graph is symmetric, we only sample points that come after
         for (int j = 0; j < int(p * (n - i)) - 1; j++) {
 
@@ -31,14 +31,14 @@ void construct_neighborhood_graph(float p,
             distance = 0;
             for (int k = 0; k < d; k++) {
                 distance += pow(X[i * d + k] - X[neighbor * d + k], 2);
-                if (distance > sq_eps) break;
+                //if (distance > sq_eps) break;
             }
 
             if (distance <= sq_eps) {
               
                 // Add edge between both vertices
-                neighbors[i].push_back(neighbor);
-                neighbors[neighbor].push_back(i);
+                neighbors[i].push_back(make_pair(distance, neighbor));
+                neighbors[neighbor].push_back(make_pair(distance, i));
             }
         }
     }
@@ -47,7 +47,7 @@ void construct_neighborhood_graph(float p,
 
 void DBSCAN(int n,
             vector<bool> & is_core_pt,
-            vector< vector<int> > & neighbors,
+            vector< vector< pair<float, int> > > & neighbors,
             int * result) {
     /*
         
@@ -71,7 +71,7 @@ void DBSCAN(int n,
                 q.pop();
 
                 for (vector<int>::size_type j = 0; j < neighbors[point].size(); j++) {
-                    neighbor = neighbors[point][j];
+                    neighbor = neighbors[point][j].second;
 
                     if (is_core_pt[neighbor] && result[neighbor] == -1) {
                         q.push(neighbor);
@@ -89,7 +89,7 @@ void DBSCAN(int n,
 
 
 void cluster_remaining(int n,
-                       vector< vector<int> > & neighbors,
+                       vector< vector< pair<float, int> > > & neighbors,
                        vector<bool> & is_core_pt,
                        int * result) {
     /*
@@ -103,7 +103,7 @@ void cluster_remaining(int n,
         if (result[i] != -1) continue;
 
         for (vector<int>::size_type j = 0; j < neighbors[i].size(); j++) {
-            neighbor = neighbors[i][j];
+            neighbor = neighbors[i][j].second;
             if (is_core_pt[neighbor]) {
                 result[i] = result[neighbor];
                 break;
@@ -124,7 +124,7 @@ void SubsampledGraphBasedDBSCAN_cy(float p,
         
 
     */
-    vector< vector<int> > neighbors (n);
+    vector< vector< pair<float, int> > > neighbors (n);
     vector<bool> is_core_pt (n);
 
     // Construct the neighborhood graph
