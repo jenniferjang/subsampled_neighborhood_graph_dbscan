@@ -4,7 +4,7 @@ from sklearn.neighbors import KDTree
 from datetime import datetime
 
 
-cdef extern from "subsampled_graph_based_dbscan_preallocated.h":
+cdef extern from "subsampled_neighborhood_graph_dbscan_preallocated.h":
     void SubsampledNeighborhoodGraphDBSCAN_preallocated_cy(float p, 
                                                     int n,
                                                     int d, 
@@ -29,7 +29,7 @@ cdef SubsampledNeighborhoodGraphDBSCAN_preallocated_np(p,
                                                <int *> np.PyArray_DATA(result))
 
 
-cdef extern from "subsampled_graph_based_dbscan.h":
+cdef extern from "subsampled_neighborhood_graph_dbscan.h":
     void SubsampledNeighborhoodGraphDBSCAN_cy(float p, 
                                        int n,
                                        int d, 
