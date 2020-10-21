@@ -5,7 +5,7 @@ from datetime import datetime
 
 
 cdef extern from "subsampled_graph_based_dbscan_preallocated.h":
-    void SubsampledGraphBasedDBSCAN_preallocated_cy(float p, 
+    void SubsampledNeighborhoodGraphDBSCAN_preallocated_cy(float p, 
                                                     int n,
                                                     int d, 
                                                     float eps, 
@@ -13,14 +13,14 @@ cdef extern from "subsampled_graph_based_dbscan_preallocated.h":
                                                     float * X,
                                                     int * result)
 
-cdef SubsampledGraphBasedDBSCAN_preallocated_np(p, 
+cdef SubsampledNeighborhoodGraphDBSCAN_preallocated_np(p, 
                                                 n, 
                                                 d,
                                                 eps,
                                                 minPts,
                                                 np.ndarray[float, ndim=2, mode="c"] X,
                                                 np.ndarray[np.int32_t, ndim=1, mode="c"] result):
-    SubsampledGraphBasedDBSCAN_preallocated_cy(p, 
+    SubsampledNeighborhoodGraphDBSCAN_preallocated_cy(p, 
                                                n,
                                                d,
                                                eps,
@@ -30,7 +30,7 @@ cdef SubsampledGraphBasedDBSCAN_preallocated_np(p,
 
 
 cdef extern from "subsampled_graph_based_dbscan.h":
-    void SubsampledGraphBasedDBSCAN_cy(float p, 
+    void SubsampledNeighborhoodGraphDBSCAN_cy(float p, 
                                        int n,
                                        int d, 
                                        float eps, 
@@ -38,14 +38,14 @@ cdef extern from "subsampled_graph_based_dbscan.h":
                                        float * X,
                                        int * result)
 
-cdef SubsampledGraphBasedDBSCAN_np(p, 
+cdef SubsampledNeighborhoodGraphDBSCAN_np(p, 
                                    n, 
                                    d,
                                    eps,
                                    minPts,
                                    np.ndarray[float, ndim=2, mode="c"] X,
                                    np.ndarray[np.int32_t, ndim=1, mode="c"] result):
-    SubsampledGraphBasedDBSCAN_cy(p, 
+    SubsampledNeighborhoodGraphDBSCAN_cy(p, 
                                   n,
                                   d,
                                   eps,
@@ -54,7 +54,7 @@ cdef SubsampledGraphBasedDBSCAN_np(p,
                                   <int *> np.PyArray_DATA(result))
 
 
-class SubsampledGraphBasedDBSCAN:
+class SubsampledNeighborhoodGraphDBSCAN:
     """
     Parameters
     ----------
@@ -91,8 +91,8 @@ class SubsampledGraphBasedDBSCAN:
         result = np.full(n, -1, dtype=np.int32)
 
         if preallocated:
-          SubsampledGraphBasedDBSCAN_preallocated_np(self.p, n, d, self.eps, self.minPts, X, result)
+          SubsampledNeighborhoodGraphDBSCAN_preallocated_np(self.p, n, d, self.eps, self.minPts, X, result)
         else:
-          SubsampledGraphBasedDBSCAN_np(self.p, n, d, self.eps, self.minPts, X, result)
+          SubsampledNeighborhoodGraphDBSCAN_np(self.p, n, d, self.eps, self.minPts, X, result)
 
         return result
